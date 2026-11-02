@@ -1,0 +1,939 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>CS24 Roadmap Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout concept: left rail (nav, name, sync state) + one working column.
+   Dashboard reads as a pipeline: seven stages, each module a status-coloured chip. */
+:root{
+  --bg:#EDF0F5; --surface:#FFFFFF; --surface2:#F5F7FA; --line:#D6DDE7; --line2:#E6EAF0;
+  --fg:#121C2A; --muted:#566377; --accent:#0A7EA4; --accent-ink:#FFFFFF; --accent-soft:#DAEEF6;
+  --code-bg:#EAEFF5;
+  --s-AVAILABLE-bg:#E3E8EF; --s-AVAILABLE-fg:#3A485E; --s-AVAILABLE-solid:#8796AC;
+  --s-BLOCKED-bg:#FBE2DF;   --s-BLOCKED-fg:#9B2A22;   --s-BLOCKED-solid:#D4504A;
+  --s-CLAIMED-bg:#E8E2FA;   --s-CLAIMED-fg:#5535AE;   --s-CLAIMED-solid:#7C5CD6;
+  --s-IN_PROGRESS-bg:#DBEAF9; --s-IN_PROGRESS-fg:#0B57A3; --s-IN_PROGRESS-solid:#2F7FD1;
+  --s-REVIEW-bg:#FAEED0;    --s-REVIEW-fg:#875700;    --s-REVIEW-solid:#D9981A;
+  --s-COMPLETED-bg:#D8F1E2; --s-COMPLETED-fg:#17653A; --s-COMPLETED-solid:#2E9E62;
+  --p-Critical:#C8443D; --p-High:#D9801B; --p-Medium:#3D86D6; --p-Low:#8796AC;
+  --shadow:0 8px 28px rgba(18,28,42,.14);
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B121B; --surface:#121C28; --surface2:#172333; --line:#27374A; --line2:#1D2B3C;
+  --fg:#E6ECF4; --muted:#93A2B7; --accent:#3DB8E4; --accent-ink:#06202B; --accent-soft:#123244;
+  --code-bg:#0E1722;
+  --s-AVAILABLE-bg:#1F2C3C; --s-AVAILABLE-fg:#B4C2D6; --s-AVAILABLE-solid:#6B7C93;
+  --s-BLOCKED-bg:#3A1D1F;   --s-BLOCKED-fg:#FFA39B;   --s-BLOCKED-solid:#F0706A;
+  --s-CLAIMED-bg:#2A2347;   --s-CLAIMED-fg:#C6B5FF;   --s-CLAIMED-solid:#9A82F0;
+  --s-IN_PROGRESS-bg:#16304D; --s-IN_PROGRESS-fg:#92C8FF; --s-IN_PROGRESS-solid:#4D9BEA;
+  --s-REVIEW-bg:#3B2E12;    --s-REVIEW-fg:#F4CB74;    --s-REVIEW-solid:#E8B341;
+  --s-COMPLETED-bg:#123424; --s-COMPLETED-fg:#84D9A6; --s-COMPLETED-solid:#46C07F;
+  --p-Critical:#F0706A; --p-High:#F0A04B; --p-Medium:#6BAAF0; --p-Low:#6B7C93;
+  --shadow:0 8px 28px rgba(0,0,0,.5);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B121B; --surface:#121C28; --surface2:#172333; --line:#27374A; --line2:#1D2B3C;
+  --fg:#E6ECF4; --muted:#93A2B7; --accent:#3DB8E4; --accent-ink:#06202B; --accent-soft:#123244;
+  --code-bg:#0E1722;
+  --s-AVAILABLE-bg:#1F2C3C; --s-AVAILABLE-fg:#B4C2D6; --s-AVAILABLE-solid:#6B7C93;
+  --s-BLOCKED-bg:#3A1D1F;   --s-BLOCKED-fg:#FFA39B;   --s-BLOCKED-solid:#F0706A;
+  --s-CLAIMED-bg:#2A2347;   --s-CLAIMED-fg:#C6B5FF;   --s-CLAIMED-solid:#9A82F0;
+  --s-IN_PROGRESS-bg:#16304D; --s-IN_PROGRESS-fg:#92C8FF; --s-IN_PROGRESS-solid:#4D9BEA;
+  --s-REVIEW-bg:#3B2E12;    --s-REVIEW-fg:#F4CB74;    --s-REVIEW-solid:#E8B341;
+  --s-COMPLETED-bg:#123424; --s-COMPLETED-fg:#84D9A6; --s-COMPLETED-solid:#46C07F;
+  --p-Critical:#F0706A; --p-High:#F0A04B; --p-Medium:#6BAAF0; --p-Low:#6B7C93;
+  --shadow:0 8px 28px rgba(0,0,0,.5);
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--fg);font:400 15px/1.55 var(--f-body);margin:0;
+  padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.15;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(26px,3.4vw,36px)}
+h2{font-size:19px}
+h3{font-size:15px;letter-spacing:0}
+p{margin:0}
+ul{margin:0;padding:0;list-style:none}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font:500 11.5px/1 var(--f-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+
+.app{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;max-width:1280px;margin:0 auto}
+.side{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;height:100vh;display:flex;flex-direction:column;gap:22px;padding-block:28px;min-width:0}
+.brand{display:flex;flex-direction:column;gap:4px}
+.brand .tag{font:500 12px/1 var(--f-mono);color:var(--accent);letter-spacing:.08em}
+.brand b{font:700 21px/1.1 var(--f-display);letter-spacing:-.01em}
+.brand small{color:var(--muted);font-size:12.5px}
+#nav{display:flex;flex-direction:column;gap:2px}
+#nav a{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--fg);padding:8px 10px;border-radius:6px;font-weight:500;font-size:14.5px}
+#nav a:hover{background:var(--surface);text-decoration:none}
+#nav a[aria-current="page"]{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+#nav a .cnt{font:500 12px var(--f-mono);color:var(--muted)}
+.who{display:flex;flex-direction:column;gap:6px}
+.who label{font-size:12.5px;color:var(--muted)}
+.field{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;min-width:0}
+.field:disabled{opacity:.6}
+textarea.field{resize:vertical;min-height:88px}
+.sync{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--muted);margin-top:auto}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--s-AVAILABLE-solid);flex:none;margin-top:6px}
+.sync.shared i{background:var(--s-COMPLETED-solid)}
+.sync.local i,.sync.warn i{background:var(--s-REVIEW-solid)}
+
+main{padding-block:28px 72px;min-width:0;display:flex;flex-direction:column;gap:36px}
+.pagehead{display:flex;flex-direction:column;gap:8px}
+.pagehead p{color:var(--muted);max-width:68ch}
+.section{display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--line);padding-top:18px;min-width:0}
+.section>header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:36px}
+
+/* chips and badges */
+.st{display:inline-flex;align-items:center;gap:6px;font:500 12px/1 var(--f-body);padding:5px 9px;border-radius:99px;white-space:nowrap}
+.st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.s-AVAILABLE{background:var(--s-AVAILABLE-bg);color:var(--s-AVAILABLE-fg)}
+.s-WAITING,.s-BLOCKED{background:var(--s-BLOCKED-bg);color:var(--s-BLOCKED-fg)}
+.s-CLAIMED{background:var(--s-CLAIMED-bg);color:var(--s-CLAIMED-fg)}
+.s-IN_PROGRESS{background:var(--s-IN_PROGRESS-bg);color:var(--s-IN_PROGRESS-fg)}
+.s-REVIEW{background:var(--s-REVIEW-bg);color:var(--s-REVIEW-fg)}
+.s-COMPLETED{background:var(--s-COMPLETED-bg);color:var(--s-COMPLETED-fg)}
+.pri{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap}
+.pri::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--p-Low);transform:rotate(45deg)}
+.pri-Critical::before{background:var(--p-Critical)}.pri-High::before{background:var(--p-High)}.pri-Medium::before{background:var(--p-Medium)}
+.tagx{font:500 11.5px/1 var(--f-mono);padding:4px 7px;border:1px solid var(--line);border-radius:4px;color:var(--muted);white-space:nowrap}
+.tagx.hot{color:var(--accent);border-color:var(--accent)}
+.mid{font:500 12.5px/1 var(--f-mono);color:var(--muted)}
+.mchip{display:inline-flex;align-items:center;justify-content:center;font:500 12px/1 var(--f-mono);padding:6px 7px;border-radius:5px;border:1px solid transparent;color:var(--fg)}
+.mchip:hover{text-decoration:none;filter:brightness(.96)}
+.mchip.s-AVAILABLE{background:transparent;border-color:var(--line);color:var(--fg)}
+.mchip.s-WAITING{background:transparent;border:1px dashed var(--s-BLOCKED-solid);color:var(--s-BLOCKED-fg)}
+.mchip.s-BLOCKED{border-color:var(--s-BLOCKED-solid)}
+.mchip.s-COMPLETED{background:var(--s-COMPLETED-solid);color:#fff}
+.mchip.s-COMPLETED::after{content:" ✓";white-space:pre}
+[data-theme="dark"] .mchip.s-COMPLETED{color:#06210F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mchip.s-COMPLETED{color:#06210F}}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+
+.bar{height:6px;background:var(--line2);border-radius:99px;overflow:hidden;min-width:48px}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.stack{display:flex;height:14px;border-radius:4px;overflow:hidden;gap:2px;background:transparent}
+.stack>i{display:block;min-width:3px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+/* dashboard */
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;border-block:1px solid var(--line)}
+.fig{padding:16px 18px 16px 0;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fig+.fig{padding-left:18px;border-left:1px solid var(--line)}
+.fig b{font:700 34px/1.05 var(--f-display);font-variant-numeric:tabular-nums}
+.fig b small{font-size:16px;color:var(--muted);font-weight:500}
+.fig span{color:var(--muted);font-size:13px}
+.pipeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px 22px}
+.stage{display:flex;flex-direction:column;gap:9px;min-width:0}
+.stage .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.stage .top b{font:600 14px/1.2 var(--f-display)}
+.stage .top span{font:500 12px var(--f-mono);color:var(--muted)}
+.list{display:flex;flex-direction:column}
+.li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line2);color:var(--fg)}
+.li:last-child{border-bottom:0}
+a.li:hover{text-decoration:none;background:var(--surface);}
+.li .nm{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.li .sub{grid-column:2/4;font-size:12.5px;color:var(--muted)}
+.empty{color:var(--muted);font-size:14px;padding:6px 0;max-width:56ch}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font:500 11.5px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px 8px 0;border-bottom:1px solid var(--line)}
+td{padding:10px 10px 10px 0;border-bottom:1px solid var(--line2);vertical-align:top}
+.tablewrap{overflow-x:auto}
+.act{display:flex;flex-direction:column}
+.act li{padding:9px 0;border-bottom:1px solid var(--line2);font-size:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:baseline}
+.act li time{font:400 12px var(--f-mono);color:var(--muted);flex:none;min-width:84px}
+
+/* module list */
+.filters{display:grid;grid-template-columns:minmax(180px,2fr) repeat(4,minmax(110px,1fr));gap:10px;align-items:center}
+.filters label.chk{display:flex;gap:8px;align-items:center;font-size:13.5px;color:var(--muted);white-space:nowrap}
+.rows{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:52px minmax(0,1fr) 92px 70px 150px 120px 90px;gap:10px 14px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line2);color:var(--fg)}
+.row:hover{background:var(--surface);text-decoration:none}
+.row .nm b{font-weight:600;display:block;overflow-wrap:anywhere}
+.row .nm small{color:var(--muted);font-size:12.5px}
+.row .who2{font-size:13.5px;color:var(--muted);overflow-wrap:anywhere}
+.rowhead{font:500 11.5px var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding-block:8px}
+.rowhead:hover{background:transparent}
+
+/* board */
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px;min-width:0}
+.col>h3{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+.col>h3 .st{font-size:12.5px}
+.col>h3 span.n{font:500 12px var(--f-mono);color:var(--muted)}
+.card{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;color:var(--fg)}
+.card:hover{text-decoration:none;border-color:var(--accent)}
+.card .t{font-weight:600;overflow-wrap:anywhere;line-height:1.3}
+.card .meta{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.card .who2{font-size:12.5px;color:var(--muted)}
+
+/* detail */
+.crumbs{font-size:13.5px}
+.dhead{display:flex;flex-direction:column;gap:12px}
+.dhead .row1{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.detail{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:40px;align-items:start}
+.dmain{display:flex;flex-direction:column;gap:30px;min-width:0}
+.dside{position:sticky;top:20px;display:flex;flex-direction:column;gap:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0}
+.dside .blk{display:flex;flex-direction:column;gap:8px}
+.dside label,.lbl{font:500 11.5px/1 var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.btn{border:1px solid var(--line);background:var(--surface2);border-radius:6px;padding:8px 10px;cursor:pointer;font-weight:500;font-size:14px;text-align:center}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.on{box-shadow:inset 0 0 0 2px var(--accent);border-color:var(--accent)}
+.btn.small{padding:5px 9px;font-size:12.5px}
+.btn.danger{color:var(--s-BLOCKED-fg)}
+.notice{font-size:13px;color:var(--s-REVIEW-fg);background:var(--s-REVIEW-bg);border-radius:6px;padding:8px 10px}
+.notice.bad{color:var(--s-BLOCKED-fg);background:var(--s-BLOCKED-bg)}
+.check{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line2);cursor:pointer}
+.check:last-child{border-bottom:0}
+.check input{width:17px;height:17px;margin-top:3px;accent-color:var(--accent)}
+.check.done span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.bul li{position:relative;padding:5px 0 5px 18px}
+.bul li::before{content:"";position:absolute;left:3px;top:14px;width:5px;height:5px;border-radius:50%;background:var(--muted)}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:14px}
+.facts dt{color:var(--muted)}.facts dd{margin:0;min-width:0;overflow-wrap:anywhere}
+pre{margin:0;background:var(--code-bg);border:1px solid var(--line2);border-radius:8px;padding:14px;overflow-x:auto;font:400 13px/1.6 var(--f-mono);position:relative}
+.codewrap{position:relative}
+.codewrap .btn{position:absolute;top:8px;right:8px}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.flow>div{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.flow p{font-size:13px;color:var(--muted)}
+.prio{display:grid;grid-template-columns:90px minmax(0,1fr) 54px;gap:12px;align-items:center;font-size:13.5px}
+.p-item{display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px 14px;padding:14px 0;border-bottom:1px solid var(--line2)}
+.p-item:last-child{border-bottom:0}
+.p-item b{font-weight:600}
+.sev{font:500 11.5px var(--f-mono)}
+.sev.high{color:var(--p-Critical)}.sev.med{color:var(--p-High)}.sev.low{color:var(--muted)}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;max-width:min(92vw,520px);z-index:50}
+#toast.show{opacity:1}
+
+@media (max-width:1020px){
+  .row{grid-template-columns:52px minmax(0,1fr) 120px 90px;grid-template-areas:"id nm st pr" "id nm who bar"}
+  .row>*{grid-area:auto}
+  .row .c-id{grid-area:id}.row .nm{grid-area:nm}.row .c-st{grid-area:st}.row .c-pri{grid-area:pr}.row .who2{grid-area:who}.row .c-bar{grid-area:bar}
+  .row .c-diff,.row .c-deps{display:none}
+  .rowhead{display:none}
+  .filters{grid-template-columns:1fr 1fr}
+  .filters .q{grid-column:1/-1}
+  .detail{grid-template-columns:minmax(0,1fr)}
+  .dside{position:static;order:-1}
+}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);gap:0}
+  .side{position:static;height:auto;padding-block:20px 8px;gap:14px}
+  #nav{flex-direction:row;flex-wrap:wrap;gap:6px}
+  #nav a{border:1px solid var(--line);padding:6px 10px}
+  .sync{margin-top:0}
+  .cols{grid-template-columns:minmax(0,1fr);gap:30px}
+  main{padding-top:14px}
+}
+@media (max-width:520px){
+  .fig+.fig{border-left:0;padding-left:0}
+  .fig{padding-right:8px}
+  .figs{grid-template-columns:1fr 1fr}
+  .prio{grid-template-columns:78px minmax(0,1fr) 48px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <span class="tag">CS24 · DATA MINING</span>
+      <b>Network Attack Detection</b>
+      <small>CIC-IDS2017 · supervised classification</small>
+    </div>
+    <nav id="nav" aria-label="Sections"></nav>
+    <div class="who">
+      <label for="me">Your name (used when you claim a module)</label>
+      <input id="me" class="field" type="text" maxlength="40" autocomplete="off" placeholder="e.g. Amine B.">
+    </div>
+    <div class="sync" id="sync"><i></i><span>Connecting…</span></div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   Static roadmap definition (from the repository audit).
+   Only progress state (status, owner, ticks, notes) is stored.
+   ============================================================ */
+const STAGES=["Foundations","Understanding","Methodology","Features","Models","Optimise and analyse","Delivery"];
+const STATUS_LABEL={AVAILABLE:"Available",WAITING:"Waiting on dependencies",CLAIMED:"Claimed",IN_PROGRESS:"In progress",REVIEW:"In review",COMPLETED:"Completed",BLOCKED:"Blocked"};
+const STATUS_ORDER=["COMPLETED","REVIEW","IN_PROGRESS","CLAIMED","AVAILABLE","WAITING","BLOCKED"];
+const PRI_RANK={Critical:0,High:1,Medium:2,Low:3};
+const DIFF_RANK={Easy:0,Medium:1,Hard:2};
+
+const MODS=[
+{id:"M00",name:"Repo hygiene and conventions",stage:0,kind:"MISSING",pri:"Critical",diff:"Easy",deps:[],slug:"repo-hygiene",rec:"Do first",
+ obj:"One person fixes the repository foundations so every later branch starts from the same clean base.",
+ why:"Evidence: .gitignore excludes dataset/ while .gitattributes tracks dataset/*.csv with Git LFS. k.py and r.py sit at the repository root. There is no requirements.txt. The README lists training.py and evaluation.py, which do not exist, and cites unb.ca although the data comes from Kaggle.",
+ steps:["Resolve .gitignore versus .gitattributes: keep dataset/ ignored and remove the LFS line.","Extend .gitignore (__pycache__/, .ipynb_checkpoints/, models/*.joblib, .venv/, data/processed/).","Create requirements.txt (pandas, numpy, scikit-learn, matplotlib, seaborn, joblib, kagglehub, pytest).","Move k.py to scripts/download_dataset.py and delete r.py (it prints the method object, not rows).","Add src/__init__.py and src/config.py (paths, SEED, file list, label names).","Install nbstripout so notebook outputs stop polluting diffs.","Pick one language for code and docstrings (English) and update the README structure and dataset source."],
+ done:["A fresh clone plus pip install -r requirements.txt runs the loader without edits.","git status is clean after running the loader.","README structure matches the repository.","No scratch files remain at the root."],
+ tests:["Manual checklist on a clean clone, ticked by the reviewer."],
+ files:["README.md",".gitignore",".gitattributes","requirements.txt","scripts/download_dataset.py","src/config.py","src/__init__.py"],fixes:["P14","P15"]},
+
+{id:"M01",name:"Ingestion and validation",stage:0,kind:"IMPROVE",pri:"High",diff:"Easy",deps:["M00"],slug:"data-validation",
+ obj:"Load the 8 CSV files safely and prove the merged data is what we think it is.",
+ why:"Evidence: load_and_merge_datasets prints a warning for a missing file and carries on, so a partial dataset would train silently. The notebook expects 2,830,743 rows by 79 columns. File encoding is not set, and the three Web Attack labels contain a non-ASCII character that depends on it.",
+ steps:["Make a missing file raise an error instead of a warning.","Pass an explicit encoding when reading CSVs.","Check that all files share the same 79 stripped column names.","Check the merged row count (2,830,743) and the 15 expected labels.","Downcast numeric columns to float32/int32 and report the memory saved.","Return the DataFrame together with a validation report dictionary."],
+ done:["A missing file stops the pipeline with a clear message.","Row total and label set match the expected values.","Validation report is printed and saved to results/tables.","Memory use before and after is reported."],
+ tests:["Unit test on two tiny sample CSVs in tests/data (schema mismatch raises)."],
+ files:["src/preprocessing.py","tests/test_ingestion.py"],fixes:["P13"]},
+
+{id:"M02",name:"Cleaning v2",stage:0,kind:"IMPROVE",pri:"High",diff:"Medium",deps:["M01"],slug:"cleaning-v2",
+ obj:"Make cleaning defensible: duplicates, redundant columns and the near-constant rule, all reported.",
+ why:"Evidence: clean_data never removes duplicate rows, and Fwd Header Length.1 still appears in the RF importance table. The 99%-zeros rule runs on all data, so columns used only by rare attacks (Heartbleed 11 rows, SQL injection 21, Infiltration 36) can be dropped without anyone noticing.",
+ steps:["Count and drop exact duplicate rows, with a per-class report before and after.","Drop the duplicate column Fwd Header Length.1.","Report negative values in columns that should not be negative (for example Init_Win_bytes).","Apply the near-constant rule on the training split only and list which attack classes use each dropped column.","Keep the inf to NaN conversion and dropna, and report how many rows each removes.","Cache the cleaned table to data/processed as parquet."],
+ done:["Duplicate counts per class are reported.","Dropped-column list with justification saved to results/tables/dropped_columns.csv.","Rare-class row counts are unchanged after cleaning (documented).","Cleaned file reloads without re-running the cleaning."],
+ tests:["Constant column is removed using train data only.","Duplicate rows are removed and counted."],
+ files:["src/preprocessing.py","results/tables/dropped_columns.csv"],fixes:["P7","P8","P9"]},
+
+{id:"M03",name:"Labels and task definition",stage:0,kind:"IMPROVE",pri:"Critical",diff:"Easy",deps:["M01"],slug:"label-encoding",rec:"Recommended next",
+ obj:"Define the target once and correctly: attack is 1 everywhere, with binary, multiclass and family tasks.",
+ why:"Evidence: encode_labels sets 1 for BENIGN and 0 for attack, so sklearn reports the benign class as 'positive'. The src version also lacks the unmapped-label assertion that the notebook has. Every metric depends on this definition.",
+ steps:["Move the 15 label names to src/config.py.","Rewrite encode_labels(df, task='binary'|'multiclass'|'family') with attack = 1.","Raise a ValueError listing any label that is not mapped (port the notebook assertion).","Add the attack-family mapping (DoS/DDoS, brute force, web attack, PortScan, bot, infiltration, Heartbleed).","Return the label names so reports can print them.","Update the notebook cells to call the function."],
+ done:["Attack equals 1 in every code path.","An unknown label raises an error that names it.","Class counts match the notebook value_counts.","All three tasks run on the full dataset."],
+ tests:["Mapping test including the encoding variants of 'Web Attack Brute Force'.","Test that BENIGN maps to 0 in binary mode."],
+ files:["src/preprocessing.py","src/config.py","tests/test_labels.py"],fixes:["P1","P12"]},
+
+{id:"M04",name:"EDA and visualization",stage:1,kind:"MISSING",pri:"High",diff:"Medium",deps:["M01"],slug:"eda",
+ obj:"Understand the traffic: class balance, distributions, correlations and what each attack looks like.",
+ why:"Evidence: the notebook only prints NaN counts and class counts. There are no distributions, correlation analysis or per-attack profiles, although the course project requires them and M06 needs the correlation list.",
+ steps:["Plot class distribution overall and per capture day (log scale).","Produce summary statistics and a skewness table.","Draw a correlation heatmap and export every pair with |r| above 0.95.","Plot per-attack profiles for the 10 most informative features (boxplots).","Audit inf, NaN and negative values.","Save all figures to results/figures and summarise findings in 10 lines."],
+ done:["At least 6 figures saved under results/figures.","Correlated-pair list exported as CSV for M06.","Findings summary written in the notebook."],
+ tests:["Notebook runs top to bottom on a fresh kernel."],
+ files:["notebooks/01_eda.ipynb","src/eda.py","results/figures/"],fixes:[]},
+
+{id:"M05",name:"Split and validation protocol",stage:2,kind:"IMPROVE",pri:"Critical",diff:"Medium",deps:["M03"],slug:"split-validation",
+ obj:"One split, saved and reproducible, with no scaling outside the pipeline.",
+ why:"Evidence: split_and_scale fits and applies the scaler inside the split function and returns arrays only, so the scaler is lost. In the notebook PCA and LDA are fitted before cross_val_score, so validation folds influence the transform.",
+ steps:["Make split_data return raw, unscaled X and y.","Save train and test indices to data/splits so every module uses the same rows.","Add a StratifiedKFold(5, shuffle, seed) helper.","Add an optional group-by-day helper (used by M27).","Keep the seed in config."],
+ done:["Same seed gives identical indices.","Class ratios are preserved within 0.1%.","No scaler or reducer is fitted outside a pipeline."],
+ tests:["Determinism test (two runs, same indices).","Stratification test on class ratios."],
+ files:["src/preprocessing.py","src/config.py","tests/test_split.py"],fixes:["P4","P10","P11"]},
+
+{id:"M06",name:"Feature selection",stage:3,kind:"IMPROVE",pri:"High",diff:"Medium",deps:["M02","M05"],slug:"feature-selection",
+ obj:"Turn the computed importances into an actual, stable feature subset.",
+ why:"Evidence: the notebook computes mutual information and RF importances but keeps features_selected_col 'for reference, not used'. RF importances are rounded to 3 decimals, so many show 0.000. Redundant pairs exist (Fwd Header Length twice, Subflow Fwd Bytes with Total Length of Fwd Packets).",
+ steps:["Prune correlated features (|r| above 0.95), keeping the one with higher mutual information.","Compute mutual information on a stratified sample.","Compute RF importances on the training split without rounding.","Compute permutation importance on a validation split.","Check stability across at least 3 seeds.","Save top-k lists (k = 10, 20, 30) to configs/features.json and expose a pipeline-compatible selector."],
+ done:["configs/features.json saved.","Selection is stable (Jaccard reported across 3 seeds).","Downstream score of selected versus full features is compared (needs M10).","Selector is fitted on training data only."],
+ tests:["Selector fit uses training rows only (assert on indices)."],
+ files:["src/feature_selection.py","configs/features.json"],fixes:["P6","P7","P13"]},
+
+{id:"M07",name:"Dimensionality reduction study",stage:3,kind:"IMPROVE",pri:"High",diff:"Medium",deps:["M09","M10"],slug:"dim-reduction-study",rec:"Highest-impact experiment",
+ obj:"Measure what the 1-D LDA step costs by comparing it with full features, top-k and PCA.",
+ why:"Evidence: every notebook model runs on one LDA axis. Test accuracy is 0.93 for DT and KNN but 0.88 for LR and RF, and attack recall is 45% to 83%. A single Gaussian-assumption axis cannot separate 14 attack types. This is an experiment to run, not a claim to repeat.",
+ steps:["Plot the PCA cumulative explained variance and pick a threshold (for example 95%).","Wrap PCA and LDA as pipeline steps.","Run the grid {full, top-k, PCA, PCA+LDA} with at least two classifiers.","Tabulate attack recall, F1 and time for each cell.","Write a one-paragraph recommendation."],
+ done:["results/tables/ablation.csv exists.","LDA loss is quantified, not asserted.","Decision recorded in the notebook."],
+ tests:["Notebook reproduces the table with the fixed seed."],
+ files:["src/feature_selection.py","notebooks/02_experiments.ipynb","results/tables/ablation.csv"],fixes:["P2"]},
+
+{id:"M08",name:"Imbalance handling",stage:3,kind:"MISSING",pri:"High",diff:"Medium",deps:["M09","M10"],slug:"imbalance",
+ obj:"Test class weights and resampling, applied inside the training fold only.",
+ why:"Evidence: benign traffic is about 80% of rows. In the multiclass labels Heartbleed has 11 rows, SQL injection 21, Infiltration 36 and XSS 652. Accuracy hides these classes.",
+ steps:["Try class_weight='balanced' where the model supports it.","Try random undersampling of the majority class.","Try SMOTE or a capped oversampling in an imblearn pipeline (train fold only).","Define a per-class sampling strategy for the rare classes.","Compare minority recall and PR-AUC against the baseline."],
+ done:["Sampling is applied in the training fold only; the test set is unchanged.","Comparison table of gain and loss is saved."],
+ tests:["Assert the test set size and class counts are identical with and without sampling."],
+ files:["src/imbalance.py","results/tables/imbalance.csv"],fixes:["P9"]},
+
+{id:"M09",name:"Pipeline and experiment runner",stage:2,kind:"MISSING",pri:"Critical",diff:"Hard",deps:["M03","M05"],slug:"pipeline-runner",rec:"Recommended next",
+ obj:"Build one config-driven pipeline so leakage is structurally impossible and results are logged.",
+ why:"Evidence: src/ is not wired to the notebook, the scaler and reducers are lost after use, and training.py does not exist. This module unblocks about ten others.",
+ steps:["Create src/pipeline.py: build_pipeline(cfg) = scaler, optional selector/PCA/LDA, optional sampler, classifier.","Create src/models.py with a get_model(name) registry (M11 to M16 add entries).","Create src/training.py: fit, cross-validate, evaluate on the test set, append a row to results/tables/experiments.csv.","Create configs/default.yaml and a CLI: python -m src.training --config configs/default.yaml.","Save a joblib bundle with the fitted pipeline."],
+ done:["One config produces a trained pipeline and one results row.","No transformer is fitted outside the pipeline.","Fit time is logged."],
+ tests:["Leakage test: changing test labels must not change the fitted pipeline.","Same config and seed reproduce the same results row."],
+ files:["src/pipeline.py","src/models.py","src/training.py","configs/default.yaml"],fixes:["P4","P11"]},
+
+{id:"M10",name:"Evaluation module",stage:2,kind:"IMPROVE",pri:"Critical",diff:"Medium",deps:["M03"],slug:"evaluation",rec:"Recommended next",
+ obj:"One trustworthy yardstick: held-out metrics with attack as the positive class.",
+ why:"Evidence: the notebook section 'Model Evaluation' predicts on train_X, and its first bar plot is labelled as after training. Attack recall is only visible in the class-0 row of each report. There is no ROC-AUC, PR-AUC or timing, although the README says recall matters most.",
+ steps:["Write evaluate(y_true, y_pred, y_score) returning attack precision, recall, F1, accuracy, balanced accuracy, MCC, ROC-AUC and PR-AUC.","Add macro and weighted averages and a per-class report for multiclass.","Plot the confusion matrix with class names and save it.","Measure fit time and predict time per 1,000 flows.","Report test-set metrics only (train metrics only in an explicit overfitting table).","Append results to results/tables."],
+ done:["All listed metrics are computed on the test set.","Plots saved to results/figures.","Evaluation code has no dependency on a specific model."],
+ tests:["Known confusion matrix yields known precision, recall and F1."],
+ files:["src/evaluation.py","tests/test_evaluation.py"],fixes:["P3"]},
+
+{id:"M11",name:"K-Nearest Neighbors",stage:4,kind:"IMPROVE",pri:"Medium",diff:"Easy",deps:["M09"],slug:"knn",
+ obj:"Register KNN in the model registry with tuned settings and a speed plan.",
+ why:"Evidence: KNN reaches 0.929 accuracy and 0.80 attack recall on one LDA axis. On full features prediction over about 850,000 test rows is slow, so speed has to be planned.",
+ steps:["Register KNN in models.py.","Compare n_neighbors in {1, 3, 5, 11} and distance weighting.","Confirm inputs are scaled inside the pipeline.","Choose a speed strategy (subsample training, or a tree-based neighbour search).","Report predict time."],
+ done:["KNN is selectable from the config.","Predict time per 1,000 flows is reported.","Attack recall on full versus reduced features is reported."],
+ tests:["Registry returns an estimator that fits on a tiny sample."],
+ files:["src/models.py"],fixes:[]},
+
+{id:"M12",name:"Support Vector Machine",stage:4,kind:"MISSING",pri:"Medium",diff:"Medium",deps:["M09"],slug:"svm",
+ obj:"Deliver the SVM the README promises, in a form that runs on this data size.",
+ why:"Evidence: SVC is imported in the notebook but never used. A full RBF SVC does not scale to about two million rows.",
+ steps:["Use LinearSVC or SGDClassifier(loss='hinge') on the full training set.","Run an RBF SVC on a stratified subsample of at most 100,000 rows.","Calibrate scores for ROC and PR curves.","Document why the subsample is acceptable."],
+ done:["SVM variants are registered.","Subsampling policy is written down.","Results appear in the comparison table."],
+ tests:["Registry test; calibrated scores lie in [0, 1]."],
+ files:["src/models.py"],fixes:[]},
+
+{id:"M13",name:"Decision Tree",stage:4,kind:"IMPROVE",pri:"Medium",diff:"Easy",deps:["M09"],slug:"decision-tree",
+ obj:"Control tree depth so it generalises, and export readable rules.",
+ why:"Evidence: the notebook tree scores 0.9987 on train and 0.926 on test, a clear overfit.",
+ steps:["Register the tree in models.py.","Tune max_depth, min_samples_leaf and ccp_alpha.","Plot the train versus test gap.","Export the top rules as text."],
+ done:["Train and test gap is reported and reduced.","Rules export works."],
+ tests:["Registry test."],
+ files:["src/models.py"],fixes:[]},
+
+{id:"M14",name:"Random Forest",stage:4,kind:"IMPROVE",pri:"High",diff:"Easy",deps:["M09"],slug:"random-forest",
+ obj:"Evaluate a real forest, not the depth-2 forest used in the notebook.",
+ why:"Evidence: the notebook RF uses max_depth=2, so its 0.886 accuracy says little about random forests. RF is also needed by M20.",
+ steps:["Register RF in models.py.","Use 100 to 300 trees without a depth cap, with n_jobs=-1.","Try class_weight='balanced_subsample'.","Compare with the depth-2 notebook result on the same split."],
+ done:["Full-depth RF results are in the experiments table.","Comparison with the notebook is documented."],
+ tests:["Registry test."],
+ files:["src/models.py"],fixes:[]},
+
+{id:"M15",name:"Logistic Regression",stage:4,kind:"IMPROVE",pri:"Low",diff:"Easy",deps:["M09"],slug:"logistic-regression",
+ obj:"A converged, regularised linear baseline.",
+ why:"Evidence: LR reaches 0.879 accuracy and about 0.455 attack recall on one LDA axis.",
+ steps:["Register LR in models.py.","Choose solver and max_iter so it converges.","Tune C.","Try class_weight='balanced'."],
+ done:["No convergence warnings.","Results added to the experiments table."],
+ tests:["Registry test."],
+ files:["src/models.py"],fixes:[]},
+
+{id:"M16",name:"Naive Bayes",stage:4,kind:"IMPROVE",pri:"Medium",diff:"Easy",deps:["M09"],slug:"naive-bayes",
+ obj:"Replace the degenerate Bernoulli model with Gaussian Naive Bayes.",
+ why:"Evidence: the notebook confusion matrix is [[0, 167381], [0, 680982]]. The model predicts BENIGN for everything and equals the majority baseline (0.803).",
+ steps:["Register GaussianNB in models.py.","Tune var_smoothing.","Drop BernoulliNB from comparisons and note why in the report."],
+ done:["Model no longer predicts a single class.","Assumption limits (independence, Gaussian features) are written in the report."],
+ tests:["Predictions contain both classes on a balanced toy dataset."],
+ files:["src/models.py"],fixes:["P5"]},
+
+{id:"M17",name:"Gradient boosting",stage:4,kind:"OPTIONAL",pri:"Low",diff:"Easy",deps:["M09"],slug:"gradient-boosting",
+ obj:"Add HistGradientBoostingClassifier as an optional stronger baseline.",
+ why:"Included in scikit-learn, no extra dependency. Useful only if time remains after the required classifiers.",
+ steps:["Register HistGradientBoostingClassifier.","Run with default settings and one small search.","Add to the comparison table."],
+ done:["Registered and evaluated.","Added to the comparison."],
+ tests:["Registry test."],
+ files:["src/models.py"],fixes:[]},
+
+{id:"M18",name:"Hyperparameter tuning",stage:5,kind:"MISSING",pri:"Medium",diff:"Medium",deps:["M09","M10","M13","M14"],slug:"hyperparameter-tuning",
+ obj:"Tune the strongest models cheaply and inside the pipeline.",
+ why:"Evidence: no tuning exists anywhere; the notebook only uses default parameters.",
+ steps:["Use RandomizedSearchCV on a stratified subsample (about 200,000 rows).","Optimise attack recall or F1, not accuracy.","Run the search over the full pipeline, never over pre-transformed data.","Save the best parameters to configs/best_params.json."],
+ done:["Best parameters saved.","Tuned versus default comparison added to the report."],
+ tests:["Search runs on a toy dataset in a few seconds."],
+ files:["src/training.py","configs/best_params.json"],fixes:[]},
+
+{id:"M19",name:"Comparative analysis",stage:5,kind:"MISSING",pri:"High",diff:"Medium",deps:["M10","M11","M12","M13","M14","M15","M16"],slug:"comparative-analysis",
+ obj:"Compare all classifiers on one table and one set of plots, with a statistical check.",
+ why:"The course asks for a comparison of classifiers. The notebook only has separate bar plots of mixed meaning.",
+ steps:["Build the master results table (metrics and timings).","Plot recall versus time and ROC / PR curves.","Run McNemar or CV-fold significance tests between the top models.","Write the trade-off discussion (recall, false alarms, speed)."],
+ done:["One table and one figure set in results/.","Conclusion states which model to deploy and why."],
+ tests:["Table builds from the experiments CSV with no manual edits."],
+ files:["notebooks/02_experiments.ipynb","results/tables/","results/figures/"],fixes:[]},
+
+{id:"M20",name:"Explainability",stage:5,kind:"MISSING",pri:"Medium",diff:"Medium",deps:["M10","M14"],slug:"explainability",
+ obj:"Explain what the model uses and whether it relies on shortcuts.",
+ why:"Evidence: Destination Port is one of the two top RF features. In CIC-IDS2017 this can reflect how the attacks were generated rather than attack behaviour.",
+ steps:["Compute permutation importance on the test set.","Run SHAP on a sampled subset of a tree model (optional dependency).","Build per-attack feature profiles.","Retrain without Destination Port and compare."],
+ done:["Importance plots saved.","With versus without Destination Port comparison documented."],
+ tests:["Importance function returns one score per feature."],
+ files:["src/explain.py"],fixes:["P16"]},
+
+{id:"M21",name:"Persistence and inference",stage:6,kind:"MISSING",pri:"High",diff:"Medium",deps:["M09"],slug:"persistence-inference",
+ obj:"Save and reload the trained system and predict on new flows.",
+ why:"Evidence: nothing is saved. Scaler, selected features and label map are lost after each run.",
+ steps:["Save one joblib bundle: pipeline, feature order, label map, scikit-learn version, metadata.","Write src/predict.py with a CLI: python -m src.predict --input flows.csv.","Validate input columns before predicting.","Add a round-trip check."],
+ done:["Loaded bundle reproduces the original predictions exactly.","Bad input columns give a readable error."],
+ tests:["Round-trip test: save, load, compare predictions."],
+ files:["src/predict.py","models/"],fixes:["P11"]},
+
+{id:"M22",name:"Final integrated pipeline",stage:6,kind:"MISSING",pri:"High",diff:"Medium",deps:["M21","M19"],slug:"final-pipeline",
+ obj:"One command from raw CSV to predictions and a report.",
+ why:"This is the demo for the final presentation and the proof that the modules fit together.",
+ steps:["Write scripts/run_pipeline.py that chains load, clean, predict and evaluate.","Add a how-to-run section to the README.","Time a full run and record it."],
+ done:["One command works on a fresh clone.","Runtime recorded."],
+ tests:["Smoke test on a 1,000-row sample file."],
+ files:["scripts/run_pipeline.py","README.md"],fixes:[]},
+
+{id:"M23",name:"Multiclass attack detection",stage:5,kind:"MISSING",pri:"High",diff:"Hard",deps:["M03","M08","M10"],slug:"multiclass",
+ obj:"Classify which attack it is, with honest reporting for the rare classes.",
+ why:"Evidence: labels are encoded 0 to 14 in the notebook but never modelled. Minority attacks are the real test of a detection system.",
+ steps:["Train the best models on the 15-class (or family-level) target.","Report per-class precision, recall and F1.","Use macro-F1 as the headline metric.","Discuss Heartbleed, SQL injection and Infiltration explicitly."],
+ done:["Per-class table covers every class.","Rare-class discussion included in the report."],
+ tests:["Per-class report sums to the support of each class."],
+ files:["notebooks/02_experiments.ipynb","src/models.py"],fixes:["P9"]},
+
+{id:"M24",name:"Performance optimisation",stage:6,kind:"OPTIONAL",pri:"Low",diff:"Medium",deps:["M09"],slug:"performance",
+ obj:"Make full runs fast enough to repeat during the project.",
+ why:"The dataset has about 2.8 million rows; KNN and tuning are slow without care.",
+ steps:["Cache cleaned data as parquet.","Use float32 and a subsampling policy for search.","Set n_jobs where models support it.","Record timings before and after."],
+ done:["Documented speedup of a full experiment run."],
+ tests:["Results are identical before and after optimisation."],
+ files:["src/preprocessing.py","src/training.py"],fixes:[]},
+
+{id:"M25",name:"Tests and CI",stage:6,kind:"MISSING",pri:"Medium",diff:"Medium",deps:["M00"],slug:"tests-ci",
+ obj:"Automate the checks listed in every module's acceptance criteria.",
+ why:"Evidence: the repository has no tests and no CI.",
+ steps:["Create tests/ with synthetic fixtures (tiny labelled DataFrame).","Write tests for cleaning, label mapping and split determinism.","Add a no-leakage test for the pipeline.","Add a GitHub Actions workflow that runs pytest."],
+ done:["pytest passes locally and in CI.","CI runs on every pull request."],
+ tests:["CI is green on main."],
+ files:["tests/","tests/conftest.py",".github/workflows/ci.yml"],fixes:[]},
+
+{id:"M26",name:"Documentation and final report",stage:6,kind:"MISSING",pri:"High",diff:"Medium",deps:["M19","M20","M22","M23"],slug:"docs-report",
+ obj:"A README that matches reality and a report that states results and limits honestly.",
+ why:"Evidence: the README says the dataset is 'to be confirmed' and lists files that do not exist.",
+ steps:["Refresh the README (structure, how to run, results summary).","Write the experimental report: method, results, limitations.","Document known dataset issues and the Destination Port finding.","Embed the final figures and tables."],
+ done:["README matches the repository.","Report reviewed by at least two teammates."],
+ tests:["A teammate follows the README on a clean clone."],
+ files:["README.md","report/"],fixes:["P16"]},
+
+{id:"M27",name:"Robustness study",stage:5,kind:"OPTIONAL",pri:"Medium",diff:"Medium",deps:["M09","M10"],slug:"robustness",
+ obj:"Check that the scores survive a day-based split instead of a random one.",
+ why:"Evidence: the random split puts flows from one attack session in both train and test, which inflates scores.",
+ steps:["Train on Monday to Thursday, test on Friday (and vice versa where classes allow).","Compare with the random-split scores.","Discuss which attacks only appear on one day."],
+ done:["Random versus day-based table saved.","Drop in recall is discussed."],
+ tests:["Day-based split has no overlapping rows."],
+ files:["notebooks/02_experiments.ipynb","src/preprocessing.py"],fixes:["P10","P16"]}
+];
+
+const FINDINGS=[
+{id:"P1",sev:"high",t:"Label polarity inverted",e:"encode_labels sets 1 = BENIGN and 0 = attack, so default 'recall' is benign recall.",m:["M03","M10"]},
+{id:"P2",sev:"high",t:"One LDA axis is the only model input",e:"Test accuracy is 0.93 for DT and KNN but 0.88 for LR and RF; attack recall 45% to 83%.",m:["M07"]},
+{id:"P3",sev:"high",t:"'Model Evaluation' reports training-set metrics",e:"pred = model.predict(train_X). The tree shows 0.9987 on train against 0.926 on test.",m:["M10"]},
+{id:"P4",sev:"high",t:"PCA and LDA fitted before cross-validation",e:"Validation folds influence the transform. Impact looks small, but the protocol is wrong.",m:["M05","M09"]},
+{id:"P5",sev:"med",t:"Bernoulli Naive Bayes predicts one class",e:"Confusion matrix [[0, 167381], [0, 680982]] equals the majority baseline of 0.803.",m:["M16"]},
+{id:"P6",sev:"med",t:"Feature-selection results are computed, then discarded",e:"features_selected_col is kept 'for reference, not used'.",m:["M06"]},
+{id:"P7",sev:"med",t:"Redundant features remain",e:"Fwd Header Length appears twice; Subflow Fwd Bytes duplicates Total Length of Fwd Packets.",m:["M02","M06"]},
+{id:"P8",sev:"med",t:"Duplicate rows are not handled",e:"CIC-IDS2017 is widely reported to contain duplicates. Copies across train and test inflate scores.",m:["M02"]},
+{id:"P9",sev:"med",t:"Rare classes at risk",e:"Heartbleed 11 rows, SQL injection 21, Infiltration 36. The 99%-zeros rule runs on all data.",m:["M02","M08","M23"]},
+{id:"P10",sev:"med",t:"Random IID split",e:"Flows from one attack session appear in both train and test.",m:["M05","M27"]},
+{id:"P11",sev:"med",t:"Scaler and column list are not persisted",e:"split_and_scale returns arrays only. Inference cannot be reproduced.",m:["M05","M09","M21"]},
+{id:"P12",sev:"low",t:"src encode_labels has no unknown-label check",e:"The notebook asserts all labels are mapped; the src version does not.",m:["M03"]},
+{id:"P13",sev:"low",t:"Small code issues",e:"os.makedirs on a bare filename fails; RF importances rounded to 3 decimals; no CSV encoding set.",m:["M01","M06"]},
+{id:"P14",sev:"low",t:"Mixed French and English",e:"French docstrings and prints in src/, English in the notebook.",m:["M00"]},
+{id:"P15",sev:"low",t:"Repository contradictions",e:"LFS tracks an ignored folder. No ignores for caches. Notebook outputs are committed.",m:["M00"]},
+{id:"P16",sev:"med",t:"Dataset caveats and shortcut risk",e:"Destination Port is a top-2 RF feature. Published studies document labelling and artefact issues in CIC-IDS2017.",m:["M20","M26","M27"]}
+];
+
+const BASELINE=[["Majority-class baseline","0.803","0"],["Bernoulli Naive Bayes","0.803","0.00"],["Logistic Regression","0.879","0.455"],["Random Forest (depth 2)","0.886","0.454"],["Decision Tree","0.926","0.827"],["KNN","0.929","0.799"]];
+const B00=["Load and merge 8 CSV files (2,830,743 rows by 79 columns)","Clean v1: infinities to NaN, 12 near-constant columns dropped, 2,867 NaN rows removed","Label encoding for 15 classes, with an assertion in the notebook","Stratified split and scaling fitted on train only","RF importances, mutual information, PCA (15 components) and LDA (1 component)","Five classifiers trained and compared in the notebook"];
+
+const byId=Object.fromEntries(MODS.map(m=>[m.id,m]));
+const dependents={};MODS.forEach(m=>m.deps.forEach(d=>(dependents[d]=dependents[d]||[]).push(m.id)));
+const CORE=MODS.filter(m=>m.kind!=="OPTIONAL");
+
+/* ============================================================
+   State and storage
+   ============================================================ */
+let S={};            // module id -> state doc {status, assignee, pr, notes, done:{}, prev, blocker, updatedAt, updatedBy}
+let ACT=[];          // activity items newest first
+let db=null, userNs=null, mode="connecting", syncWarn=false, readOnly=false;
+const known=new Set(), queue={};
+const F={q:"",stage:"",pri:"",status:"",who:"",hideDone:false};
+let dirty=false;
+const me={name:""};
+try{me.name=localStorage.getItem("cs24.name")||"";}catch(e){}
+
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const main=$("#main");
+
+function st(m){return (S[m.id]&&S[m.id].status)||"AVAILABLE";}
+function unmet(m){return m.deps.filter(d=>st(byId[d])!=="COMPLETED");}
+function eff(m){const s=st(m);return s==="AVAILABLE"&&unmet(m).length?"WAITING":s;}
+function doneKeys(m){const d=(S[m.id]&&S[m.id].done)||{};const valid=new Set([...m.steps.map((_,i)=>"s"+i),...m.done.map((_,i)=>"a"+i)]);return Object.keys(d).filter(k=>d[k]&&valid.has(k));}
+function total(m){return m.steps.length+m.done.length;}
+function prog(m){return st(m)==="COMPLETED"?1:doneKeys(m).length/total(m);}
+function critDone(m){const d=(S[m.id]&&S[m.id].done)||{};return m.done.every((_,i)=>d["a"+i]);}
+function owner(m){return (S[m.id]&&S[m.id].assignee)||"";}
+function slugBranch(m){return "feature/"+m.id+"-"+m.slug;}
+function pct(x){return Math.round(x*100);}
+function ago(t){if(!t)return"";const s=(Date.now()-t)/1000;if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+" min ago";if(s<86400)return Math.floor(s/3600)+" h ago";return Math.floor(s/86400)+" d ago";}
+function chip(k){return `<span class="st s-${k}">${STATUS_LABEL[k]}</span>`;}
+function priTag(p){return `<span class="pri pri-${p}">${p}</span>`;}
+function mchip(m){const k=eff(m);return `<a class="mchip s-${k}" href="#module-${m.id.toLowerCase()}" title="${esc(m.id+" "+m.name+": "+STATUS_LABEL[k])}">${m.id}</a>`;}
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("show"),3200);}
+function deepMerge(a,b){const o={...a};for(const k in b){o[k]=(b[k]&&typeof b[k]==="object"&&!Array.isArray(b[k]))?deepMerge(a[k]||{},b[k]):b[k];}return o;}
+function lsSave(){try{localStorage.setItem("cs24.local",JSON.stringify({S,ACT}));}catch(e){}}
+function lsLoad(){try{const j=JSON.parse(localStorage.getItem("cs24.local")||"null");if(j){S=j.S||{};ACT=j.ACT||[];}}catch(e){}}
+
+function handleErr(e){
+  if(e&&e.code==="invalid_argument"){readOnly=true;toast("You can view this tracker but not change it. Ask the owner for Contributor access.");}
+  else toast("Could not save that change. Try again in a moment.");
+  render();
+}
+function logAct(mod,text){
+  const item={t:Date.now(),who:me.name||"Someone",mod,text};
+  if(mode==="shared"&&db){db.collection("activity").add(item).catch(()=>{});}
+  else{ACT.unshift(item);ACT=ACT.slice(0,60);lsSave();}
+}
+function write(id,patch,activity){
+  patch={...patch,updatedAt:Date.now(),updatedBy:me.name||"Someone"};
+  if(activity)logAct(id,activity);
+  if(mode==="shared"&&db){
+    queue[id]=(queue[id]||Promise.resolve()).then(async()=>{
+      const ref=db.doc("modules/"+id);
+      try{if(known.has(id)||S[id])await ref.update(patch);else await ref.set(patch);known.add(id);}
+      catch(e){handleErr(e);}
+    });
+  }else{
+    S[id]=deepMerge(S[id]||{},patch);lsSave();render();
+  }
+}
+
+/* ============================================================
+   Actions
+   ============================================================ */
+function needName(){if(me.name)return false;toast("Type your name in the left column first.");const i=$("#me");i.focus();return true;}
+function claim(m){
+  if(readOnly)return toast("View-only access.");
+  if(needName())return;
+  if(unmet(m).length)return toast("Finish "+unmet(m).join(", ")+" first, or ask the owner of that module.");
+  write(m.id,{status:"CLAIMED",assignee:me.name,blocker:""},"claimed "+m.id);
+}
+function setStatus(m,ns){
+  if(readOnly)return toast("View-only access.");
+  const cur=st(m);if(cur===ns)return;
+  if(ns==="AVAILABLE"){return write(m.id,{status:"AVAILABLE",assignee:"",blocker:""},"released "+m.id);}
+  if(!owner(m)&&ns!=="BLOCKED"){if(needName())return;}
+  if(ns==="COMPLETED"&&!critDone(m))return toast("Tick every acceptance criterion before completing "+m.id+".");
+  const patch={status:ns};
+  if(!owner(m)&&ns!=="BLOCKED")patch.assignee=me.name;
+  if(ns==="BLOCKED")patch.prev=cur;
+  if(cur==="BLOCKED")patch.blocker="";
+  write(m.id,patch,({CLAIMED:"claimed",IN_PROGRESS:"started work on",REVIEW:"sent for review:",COMPLETED:"completed",BLOCKED:"marked blocked:"}[ns]||"updated")+" "+m.id);
+}
+function unblock(m){const p=(S[m.id]&&S[m.id].prev)||"IN_PROGRESS";write(m.id,{status:p,blocker:""},"unblocked "+m.id);}
+
+async function copyText(text,btn){
+  let ok=false;
+  try{await navigator.clipboard.writeText(text);ok=true;}catch(e){
+    try{const ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();ok=document.execCommand("copy");ta.remove();}catch(e2){}
+  }
+  if(btn){const o=btn.textContent;btn.textContent=ok?"Copied":"Select and copy";setTimeout(()=>btn.textContent=o,1600);}
+}
+function boardMarkdown(){
+  let t="| ID | Module | Status | Priority | Difficulty | Dependencies | Assigned To |\n|---|---|---|---|---|---|---|\n";
+  MODS.forEach(m=>{t+=`| ${m.id} | ${m.name} | ${eff(m)==="WAITING"?"BLOCKED":st(m)} | ${m.pri} | ${m.diff} | ${m.deps.join(", ")||"-"} | ${owner(m)||"unassigned"} |\n`;});
+  return t;
+}
+
+/* ============================================================
+   Views
+   ============================================================ */
+function route(){const h=location.hash.slice(1)||"dashboard";if(h.startsWith("module-")){const m=byId[h.slice(7).toUpperCase()];if(m)return{v:"detail",m};}
+  return {v:["dashboard","board","modules","workflow","findings"].includes(h)?h:"dashboard"};}
+
+const NAV=[["dashboard","Dashboard"],["board","Board"],["modules","Modules"],["workflow","Workflow"],["findings","Findings"]];
+function renderNav(){
+  const r=route();const cur=r.v==="detail"?"modules":r.v;
+  const done=CORE.filter(m=>st(m)==="COMPLETED").length;
+  $("#nav").innerHTML=NAV.map(([k,l])=>`<a href="#${k}" ${k===cur?'aria-current="page"':""}><span>${l}</span>${k==="modules"?`<span class="cnt">${done}/${CORE.length}</span>`:""}</a>`).join("");
+  const el=$("#sync");
+  let cls="",txt="";
+  if(mode==="shared"){cls=syncWarn?"warn":"shared";txt=syncWarn?"Shared tracker. Latest changes not confirmed yet; showing the last known state.":"Shared with the team. Changes appear live for everyone.";}
+  else if(mode==="local"){cls="local";txt="Saved in this browser only. Open the published link while signed in to share progress.";}
+  else txt="Connecting…";
+  if(readOnly)txt="View-only access. "+txt;
+  el.className="sync "+cls;el.innerHTML="<i></i><span>"+esc(txt)+"</span>";
+}
+
+function readyList(){return MODS.filter(m=>eff(m)==="AVAILABLE").sort((a,b)=>(b.rec?1:0)-(a.rec?1:0)||PRI_RANK[a.pri]-PRI_RANK[b.pri]||DIFF_RANK[a.diff]-DIFF_RANK[b.diff]);}
+function transDeps(id,seen=new Set()){(dependents[id]||[]).forEach(d=>{if(!seen.has(d)){seen.add(d);transDeps(d,seen);}});return seen;}
+
+function vDashboard(){
+  const counts={};STATUS_ORDER.forEach(k=>counts[k]=0);
+  MODS.forEach(m=>{const k=eff(m);counts[k]=(counts[k]||0)+1;});
+  const coreDone=CORE.filter(m=>st(m)==="COMPLETED").length;
+  const avg=CORE.reduce((a,m)=>a+prog(m),0)/CORE.length;
+  const motion=MODS.filter(m=>["CLAIMED","IN_PROGRESS","REVIEW"].includes(st(m))).length;
+  const ready=readyList();
+  const waiting=counts.WAITING+counts.BLOCKED;
+  const segs=STATUS_ORDER.map(k=>({k,n:counts[k]})).filter(s=>s.n>0);
+  const solid=k=>`var(--s-${k==="WAITING"?"BLOCKED":k}-solid)`;
+  const pipeline=STAGES.map((nm,i)=>{
+    const ms=MODS.filter(m=>m.stage===i);const d=ms.filter(m=>st(m)==="COMPLETED").length;
+    const p=ms.reduce((a,m)=>a+prog(m),0)/ms.length;
+    return `<div class="stage"><div class="top"><b>${nm}</b><span class="num">${d}/${ms.length}</span></div><div class="bar" role="img" aria-label="${nm}: ${pct(p)}% of checklist items done"><i style="width:${pct(p)}%"></i></div><div class="chips">${ms.map(mchip).join("")}</div></div>`;}).join("");
+  const unblockers=MODS.filter(m=>st(m)!=="COMPLETED").map(m=>({m,n:[...transDeps(m.id)].filter(x=>st(byId[x])!=="COMPLETED").length})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n||PRI_RANK[a.m.pri]-PRI_RANK[b.m.pri]).slice(0,5);
+  const review=MODS.filter(m=>st(m)==="REVIEW");
+  const people={};MODS.forEach(m=>{const o=owner(m);if(o&&st(m)!=="AVAILABLE"){const p=people[o]||(people[o]={n:0,done:0,act:0,p:0});p.n++;p.p+=prog(m);if(st(m)==="COMPLETED")p.done++;else p.act++;}});
+  const peopleRows=Object.entries(people).sort((a,b)=>b[1].act-a[1].act||b[1].done-a[1].done);
+  const byPri=["Critical","High","Medium","Low"].map(p=>{const ms=MODS.filter(m=>m.pri===p);const d=ms.filter(m=>st(m)==="COMPLETED").length;return{p,d,n:ms.length};});
+
+  return `
+  <div class="pagehead"><span class="eyebrow">Project pulse</span><h1>Where the project stands</h1>
+  <p>${coreDone===0&&motion===0?"No module has been claimed yet. Start with M00, then claim M03, M10 or M09 from the list below.":`${coreDone} of ${CORE.length} required modules are complete and ${motion} are in motion.`}</p></div>
+
+  <div class="figs">
+    <div class="fig"><b>${coreDone}<small> / ${CORE.length}</small></b><span>required modules completed</span></div>
+    <div class="fig"><b>${pct(avg)}<small>%</small></b><span>of all checklist items done</span></div>
+    <div class="fig"><b>${motion}</b><span>claimed, in progress or in review</span></div>
+    <div class="fig"><b>${ready.length}</b><span>ready to claim now</span></div>
+    <div class="fig"><b>${waiting}</b><span>waiting or blocked</span></div>
+  </div>
+
+  <section class="section"><header><h2>Pipeline</h2><span class="muted" style="font-size:13px">Each chip is a module. Filled green is completed, dashed red is waiting on dependencies.</span></header>
+    <div class="pipeline">${pipeline}</div></section>
+
+  <section class="section"><header><h2>Status of all ${MODS.length} modules</h2></header>
+    <div class="stack" role="img" aria-label="Status distribution">${segs.map(s=>`<i style="flex:${s.n};background:${solid(s.k)}" title="${STATUS_LABEL[s.k]}: ${s.n}"></i>`).join("")}</div>
+    <div class="legend">${segs.map(s=>`<span><i style="background:${solid(s.k)}"></i>${STATUS_LABEL[s.k]} <b class="num" style="color:var(--fg)">${s.n}</b></span>`).join("")}</div></section>
+
+  <div class="cols">
+    <section class="section"><header><h2>Ready to start</h2><a href="#modules" style="font-size:13px">All modules</a></header>
+      ${ready.length?`<div class="list">${ready.slice(0,7).map(m=>`<a class="li" href="#module-${m.id.toLowerCase()}"><span class="mid">${m.id}</span><span class="nm">${esc(m.name)}${m.rec?` <span class="tagx hot">${esc(m.rec)}</span>`:""}</span>${priTag(m.pri)}<span class="sub">${m.diff} · ${esc(m.obj)}</span></a>`).join("")}</div>`:`<p class="empty">Nothing is free to claim. Everything left is waiting on a dependency or already owned.</p>`}
+    </section>
+    <section class="section"><header><h2>Unblocks the most work</h2></header>
+      ${unblockers.length?`<div class="list">${unblockers.map(({m,n})=>`<a class="li" href="#module-${m.id.toLowerCase()}"><span class="mid">${m.id}</span><span class="nm">${esc(m.name)}</span>${chip(eff(m))}<span class="sub">${n} later module${n>1?"s":""} depend on it, directly or not</span></a>`).join("")}</div>`:`<p class="empty">No open dependencies.</p>`}
+    </section>
+    <section class="section"><header><h2>Waiting for review</h2></header>
+      ${review.length?`<div class="list">${review.map(m=>`<a class="li" href="#module-${m.id.toLowerCase()}"><span class="mid">${m.id}</span><span class="nm">${esc(m.name)}</span><span class="muted" style="font-size:13px">${esc(owner(m))}</span>${S[m.id]&&S[m.id].pr?`<span class="sub">Pull request attached</span>`:`<span class="sub">No pull request link yet</span>`}</a>`).join("")}</div>`:`<p class="empty">Nothing is waiting for review. When a module moves to In review, a teammate other than its owner should check the acceptance criteria.</p>`}
+    </section>
+    <section class="section"><header><h2>Team workload</h2></header>
+      ${peopleRows.length?`<div class="tablewrap"><table><thead><tr><th>Person</th><th>Active</th><th>Done</th><th>Avg progress</th></tr></thead><tbody>${peopleRows.map(([n,p])=>`<tr><td>${esc(n)}</td><td class="num">${p.act}</td><td class="num">${p.done}</td><td style="min-width:90px"><div class="bar"><i style="width:${pct(p.p/p.n)}%"></i></div></td></tr>`).join("")}</tbody></table></div>`:`<p class="empty">Nobody has claimed a module yet. Open a module and press Claim.</p>`}
+    </section>
+    <section class="section"><header><h2>Completion by priority</h2></header>
+      <div style="display:flex;flex-direction:column;gap:10px">${byPri.map(x=>`<div class="prio"><span>${priTag(x.p)}</span><div class="bar"><i style="width:${x.n?pct(x.d/x.n):0}%"></i></div><span class="num muted">${x.d}/${x.n}</span></div>`).join("")}</div>
+    </section>
+    <section class="section"><header><h2>Recent activity</h2></header>
+      ${ACT.length?`<ul class="act">${ACT.slice(0,10).map(a=>`<li><time>${ago(a.t)}</time><span><b>${esc(a.who)}</b> ${esc(a.text)}</span></li>`).join("")}</ul>`:`<p class="empty">Claims, status changes and completions will be listed here.</p>`}
+    </section>
+  </div>`;
+}
+
+function vBoard(){
+  const cols=[["AVAILABLE","Available"],["BLOCKED","Blocked"],["CLAIMED","Claimed"],["IN_PROGRESS","In progress"],["REVIEW","In review"],["COMPLETED","Completed"]];
+  const colOf=m=>{const k=eff(m);return k==="WAITING"?"BLOCKED":k;};
+  return `<div class="pagehead"><span class="eyebrow">Board</span><h1>Every module by status</h1><p>Open a card to claim it, tick its checklist or change its status. Blocked holds modules waiting on dependencies and modules someone marked blocked.</p></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn small" data-act="copy-md">Copy as ROADMAP.md table</button></div>
+  <div class="board">${cols.map(([k,l])=>{const ms=MODS.filter(m=>colOf(m)===k);
+    return `<section class="col"><h3><span class="st s-${k}">${l}</span><span class="n">${ms.length}</span></h3>${ms.length?ms.map(m=>`<a class="card" href="#module-${m.id.toLowerCase()}"><div class="meta"><span class="mid">${m.id}</span>${priTag(m.pri)}</div><span class="t">${esc(m.name)}</span>${eff(m)==="WAITING"?`<span class="who2">Needs ${unmet(m).join(", ")}</span>`:""}<div class="bar"><i style="width:${pct(prog(m))}%"></i></div><div class="meta"><span class="who2">${esc(owner(m)||(m.kind==="OPTIONAL"?"Optional":"Unassigned"))}</span><span class="who2 num">${pct(prog(m))}%</span></div></a>`).join(""):`<p class="empty">None</p>`}</section>`;}).join("")}</div>`;
+}
+
+function rowHTML(m){
+  const k=eff(m);
+  return `<a class="row" href="#module-${m.id.toLowerCase()}"><span class="c-id mid">${m.id}</span>
+  <span class="nm"><b>${esc(m.name)}</b><small>${STAGES[m.stage]}${m.kind==="OPTIONAL"?" · optional":m.kind==="MISSING"?" · new":" · improve"}</small></span>
+  <span class="c-pri">${priTag(m.pri)}</span><span class="c-diff muted" style="font-size:13px">${m.diff}</span>
+  <span class="c-deps chips">${m.deps.length?m.deps.map(d=>`<span class="tagx">${d}</span>`).join(""):'<span class="muted" style="font-size:13px">none</span>'}</span>
+  <span class="c-st">${chip(k)}</span><span class="who2">${esc(owner(m)||"")}</span><span class="c-bar bar"><i style="width:${pct(prog(m))}%"></i></span></a>`;
+}
+function filtered(){
+  return MODS.filter(m=>{
+    const k=eff(m);
+    if(F.q){const q=F.q.toLowerCase();if(!(m.id+" "+m.name+" "+m.obj+" "+owner(m)).toLowerCase().includes(q))return false;}
+    if(F.stage!==""&&m.stage!==+F.stage)return false;
+    if(F.pri&&m.pri!==F.pri)return false;
+    if(F.status&&k!==F.status)return false;
+    if(F.who==="mine"&&owner(m).toLowerCase()!==me.name.toLowerCase())return false;
+    if(F.who==="none"&&owner(m))return false;
+    if(F.hideDone&&k==="COMPLETED")return false;
+    return true;});
+}
+function listHTML(){const ms=filtered();return ms.length?`<div class="rows"><div class="row rowhead"><span>ID</span><span>Module</span><span>Priority</span><span class="c-diff">Effort</span><span class="c-deps">Needs</span><span>Status</span><span>Owner</span><span>Progress</span></div>${ms.map(rowHTML).join("")}</div>`:`<p class="empty">No module matches these filters.</p>`;}
+function vModules(){
+  const opt=(v,l,cur)=>`<option value="${v}" ${String(cur)===String(v)?"selected":""}>${l}</option>`;
+  return `<div class="pagehead"><span class="eyebrow">Modules</span><h1>All ${MODS.length} modules</h1><p>Filter by stage, priority or status. Claim one module at a time and finish it before taking the next.</p></div>
+  <div class="filters">
+    <input id="f-q" class="field q" type="search" placeholder="Search by ID, name or person" value="${esc(F.q)}" aria-label="Search modules">
+    <select id="f-stage" class="field" aria-label="Stage">${opt("","All stages",F.stage)}${STAGES.map((s,i)=>opt(i,s,F.stage)).join("")}</select>
+    <select id="f-pri" class="field" aria-label="Priority">${opt("","All priorities",F.pri)}${["Critical","High","Medium","Low"].map(p=>opt(p,p,F.pri)).join("")}</select>
+    <select id="f-status" class="field" aria-label="Status">${opt("","All statuses",F.status)}${["AVAILABLE","WAITING","CLAIMED","IN_PROGRESS","REVIEW","COMPLETED","BLOCKED"].map(s=>opt(s,STATUS_LABEL[s],F.status)).join("")}</select>
+    <select id="f-who" class="field" aria-label="Owner">${opt("","Everyone",F.who)}${opt("mine","Mine",F.who)}${opt("none","Unassigned",F.who)}</select>
+    <label class="chk"><input id="f-done" type="checkbox" ${F.hideDone?"checked":""}> Hide completed</label>
+  </div>
+  <div id="list">${listHTML()}</div>`;
+}
+
+function chk(m,key,text,on){return `<label class="check ${on?"done":""}"><input type="checkbox" data-key="${key}" ${on?"checked":""} ${readOnly?"disabled":""}><span>${esc(text)}</span></label>`;}
+function gitBlock(m){
+  const b=slugBranch(m);
+  return `git switch main && git pull
+git switch -c ${b}
+# ...work, run pytest...
+git add -A
+git commit -m "${m.id}: <what changed>"
+git push -u origin ${b}
+# open a pull request titled: ${m.id}: ${m.name}`;
+}
+function vDetail(m){
+  const s=S[m.id]||{};const k=eff(m);const cur=st(m);const um=unmet(m);const d=s.done||{};
+  const dis=readOnly?"disabled":"";
+  const statusBtns=[["CLAIMED","Claimed"],["IN_PROGRESS","In progress"],["REVIEW","In review"],["COMPLETED","Completed"]].map(([v,l])=>`<button class="btn ${cur===v?"on":""}" data-act="status" data-v="${v}" ${dis}>${l}</button>`).join("");
+  const open=m.done.filter((_,i)=>!d["a"+i]).length;
+  const ownerBlock=cur==="AVAILABLE"
+    ? `<button class="btn primary" data-act="claim" ${dis||um.length?"disabled":""}>Claim ${m.id}</button>${um.length?`<div class="notice bad">Waiting on ${um.map(x=>`<a href="#module-${x.toLowerCase()}">${x}</a>`).join(", ")}. It can be claimed when those are completed.</div>`:`<p class="muted" style="font-size:13px">Claiming assigns it to ${esc(me.name||"you")} and creates your branch name below.</p>`}`
+    : `<div class="blk"><label for="d-who">Owner</label><input id="d-who" class="field" data-field="assignee" value="${esc(s.assignee||"")}" maxlength="40" ${dis}></div>
+       <div class="blk"><label>Status</label><div class="seg">${statusBtns}</div>
+       ${cur==="BLOCKED"?`<button class="btn" data-act="unblock" ${dis}>Remove blocked flag</button>`:`<button class="btn danger" data-act="status" data-v="BLOCKED" ${dis}>Mark blocked</button>`}
+       <button class="btn" data-act="status" data-v="AVAILABLE" ${dis}>Release module</button></div>
+       ${cur==="BLOCKED"?`<div class="blk"><label for="d-blk">What is blocking it?</label><input id="d-blk" class="field" data-field="blocker" value="${esc(s.blocker||"")}" maxlength="140" ${dis}></div>`:""}
+       ${open&&cur!=="COMPLETED"?`<p class="muted" style="font-size:13px">${open} acceptance criteri${open>1?"a":"on"} still open. Completing needs all of them ticked.</p>`:""}
+       ${um.length&&cur!=="COMPLETED"?`<div class="notice">Started before its dependencies finished: ${um.join(", ")}.</div>`:""}`;
+  return `
+  <div class="dhead"><a class="crumbs" href="#modules">← All modules</a>
+    <div class="row1"><span class="mid" style="font-size:14px">${m.id}</span>${chip(k)}${priTag(m.pri)}<span class="tagx">${m.diff}</span><span class="tagx">${STAGES[m.stage]}</span><span class="tagx">${m.kind==="OPTIONAL"?"Optional":m.kind==="MISSING"?"New module":"Improve existing"}</span>${m.rec?`<span class="tagx hot">${esc(m.rec)}</span>`:""}</div>
+    <h1>${esc(m.name)}</h1><p class="muted" style="max-width:70ch">${esc(m.obj)}</p></div>
+  <div class="detail">
+   <div class="dmain">
+    <section class="section"><h2>Why it is needed</h2><p style="max-width:72ch">${esc(m.why)}</p></section>
+    <section class="section"><header><h2>What to do</h2><span class="muted num" style="font-size:13px">${m.steps.filter((_,i)=>d["s"+i]).length}/${m.steps.length}</span></header>
+      <div>${m.steps.map((t,i)=>chk(m,"s"+i,t,!!d["s"+i])).join("")}</div></section>
+    <section class="section"><header><h2>Acceptance criteria</h2><span class="muted num" style="font-size:13px">${m.done.filter((_,i)=>d["a"+i]).length}/${m.done.length}</span></header>
+      <div>${m.done.map((t,i)=>chk(m,"a"+i,t,!!d["a"+i])).join("")}</div></section>
+    <section class="section"><h2>Tests required</h2><ul class="bul">${m.tests.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></section>
+    <section class="section"><h2>Files</h2><div class="chips">${m.files.map(f=>`<code class="tagx">${esc(f)}</code>`).join("")}</div></section>
+    <section class="section"><h2>Dependencies</h2>
+      <dl class="facts"><dt>Needs</dt><dd>${m.deps.length?`<span class="chips">${m.deps.map(x=>mchip(byId[x])).join("")}</span>`:"Nothing. It can start now."}</dd>
+      <dt>Unlocks</dt><dd>${(dependents[m.id]||[]).length?`<span class="chips">${dependents[m.id].map(x=>mchip(byId[x])).join("")}</span>`:"No other module depends on it."}</dd>
+      <dt>Fixes</dt><dd>${m.fixes.length?`<span class="chips">${m.fixes.map(f=>`<a class="tagx" href="#findings" title="${esc((FINDINGS.find(x=>x.id===f)||{}).t||"")}">${f}</a>`).join("")}</span> ${m.fixes.map(f=>esc((FINDINGS.find(x=>x.id===f)||{}).t||"")).join("; ")}`:"No audit finding is tied to it."}</dd></dl></section>
+    <section class="section"><h2>Git commands</h2><div class="codewrap"><pre id="git-${m.id}">${esc(gitBlock(m))}</pre><button class="btn small" data-act="copy-git">Copy</button></div></section>
+   </div>
+   <aside class="dside" aria-label="Ownership and progress">
+     ${readOnly?`<div class="notice bad">View-only access. You can read this module but not change it.</div>`:""}
+     <div class="blk"><label>Progress</label><div style="display:flex;align-items:baseline;justify-content:space-between"><b style="font:700 30px var(--f-display)" class="num">${pct(prog(m))}%</b><span class="muted num" style="font-size:13px">${doneKeys(m).length}/${total(m)} items</span></div><div class="bar"><i style="width:${pct(prog(m))}%"></i></div></div>
+     ${ownerBlock}
+     <div class="blk"><label for="d-pr">Pull request link</label><input id="d-pr" class="field" data-field="pr" value="${esc(s.pr||"")}" placeholder="https://github.com/…/pull/12" ${dis}>${/^https?:\/\//.test(s.pr||"")?`<a href="${esc(s.pr)}" target="_blank" rel="noopener">Open pull request</a>`:""}</div>
+     <div class="blk"><label for="d-notes">Notes for the team</label><textarea id="d-notes" class="field" data-field="notes" placeholder="Decisions, open questions, what the reviewer should look at" ${dis}>${esc(s.notes||"")}</textarea></div>
+     <div class="blk"><label>Branch</label><code style="overflow-wrap:anywhere">${esc(slugBranch(m))}</code></div>
+     ${s.updatedAt?`<p class="muted" style="font-size:12.5px">Last change ${ago(s.updatedAt)} by ${esc(s.updatedBy||"someone")}.</p>`:""}
+   </aside>
+  </div>`;
+}
+
+function vWorkflow(){
+  const code=(t,id)=>`<div class="codewrap"><pre id="${id}">${esc(t)}</pre><button class="btn small" data-act="copy-pre" data-t="${id}">Copy</button></div>`;
+  return `<div class="pagehead"><span class="eyebrow">Workflow</span><h1>How a module goes from claim to merge</h1><p>Rules we agreed for the repository. A module has one owner at a time; the M11 to M16 classifiers are separate modules, so they can be worked on in parallel by different people.</p></div>
+  <section class="section"><h2>Status lifecycle</h2>
+   <div class="flow">
+    <div>${chip("AVAILABLE")}<p>Free to take. Dependencies are completed.</p></div>
+    <div>${chip("CLAIMED")}<p>One person owns it and created the branch.</p></div>
+    <div>${chip("IN_PROGRESS")}<p>Code and tests are being written.</p></div>
+    <div>${chip("REVIEW")}<p>Pull request open. Someone else checks the criteria.</p></div>
+    <div>${chip("COMPLETED")}<p>Merged into main with every criterion ticked.</p></div>
+    <div>${chip("BLOCKED")}<p>Waiting on something outside the owner's control.</p></div>
+   </div></section>
+  <div class="cols">
+   <section class="section"><h2>Branches and commits</h2>
+    <ul class="bul"><li><b>main</b> is protected. Only reviewed, working code goes in.</li><li>Feature branches: <code>feature/M03-label-encoding</code>. Fixes: <code>fix/short-description</code>.</li><li>Branch from the latest main. Keep commits small.</li><li>Commit message format: <code>M10: add per-class recall and PR-AUC</code>.</li><li>Squash-merge after one approving review.</li></ul>
+    ${code(`git switch main && git pull\ngit switch -c feature/M03-label-encoding\ngit add -A\ngit commit -m "M03: attack is 1 in all label tasks"\ngit push -u origin feature/M03-label-encoding`,"wf-git")}
+   </section>
+   <section class="section"><h2>Before you open the pull request</h2>
+    <ul class="bul"><li>Every step and acceptance criterion on the module page is ticked.</li><li>pytest passes locally (once M25 exists).</li><li>Notebook outputs are stripped (nbstripout).</li><li>You changed only your module's files, plus your own rows in ROADMAP.md.</li><li>The pull request link is pasted on the module page and status is set to In review.</li></ul>
+    <p class="muted" style="font-size:13.5px">The reviewer ticks nothing for you. They read the criteria, run the code, then you or they set Completed.</p>
+   </section>
+   <section class="section"><h2>Files that cause merge conflicts</h2>
+    <div class="tablewrap"><table><thead><tr><th>File</th><th>Rule</th></tr></thead><tbody>
+     <tr><td><code>requirements.txt</code></td><td>Append lines only.</td></tr>
+     <tr><td><code>src/config.py</code>, <code>configs/default.yaml</code></td><td>Add keys in your own section.</td></tr>
+     <tr><td><code>src/models.py</code></td><td>One function per model; do not edit someone else's.</td></tr>
+     <tr><td>Notebooks</td><td>Strip outputs; one notebook per module.</td></tr>
+     <tr><td><code>README.md</code>, <code>ROADMAP.md</code></td><td>Edit your own row or section only.</td></tr></tbody></table></div>
+   </section>
+   <section class="section"><h2>Keep ROADMAP.md in the repository</h2>
+    <p class="muted">This page is the live board. To keep a copy in Git, paste the table below into ROADMAP.md at milestones.</p>
+    <button class="btn" data-act="copy-md" style="align-self:flex-start">Copy current board as Markdown</button>
+   </section>
+  </div>`;
+}
+
+function vFindings(){
+  return `<div class="pagehead"><span class="eyebrow">Findings</span><h1>What the audit found</h1><p>Sixteen issues in the current repository and notebook, each tied to the modules that fix it. Results below come from the notebook's saved outputs, not from a new run.</p></div>
+  <div class="cols">
+   <section class="section"><h2>Notebook results on the test set</h2>
+    <p class="muted" style="font-size:13.5px">All models use a single LDA axis. 'Attack recall' is the share of real attacks detected (class 0 in the notebook).</p>
+    <div class="tablewrap"><table><thead><tr><th>Model</th><th>Accuracy</th><th>Attack recall</th></tr></thead><tbody>${BASELINE.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>`).join("")}</tbody></table></div>
+    <p class="muted" style="font-size:13.5px">About 80% of flows are benign, so 0.803 accuracy needs no model at all.</p></section>
+   <section class="section"><h2>Already done (baseline)</h2><ul class="bul">${B00.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>
+    <p class="muted" style="font-size:13.5px">These stay. The modules reuse and extend them instead of rebuilding.</p></section>
+  </div>
+  <section class="section"><h2>Issues</h2><div>${FINDINGS.map(f=>`<div class="p-item"><span class="sev ${f.sev}">${f.id}</span><div><b>${esc(f.t)}</b><p class="muted" style="font-size:14px">${esc(f.e)}</p><div class="chips" style="margin-top:8px">${f.m.map(x=>mchip(byId[x])).join("")}</div></div></div>`).join("")}</div></section>`;
+}
+
+/* ============================================================
+   Render loop
+   ============================================================ */
+function editing(){const a=document.activeElement;return a&&main.contains(a)&&(a.tagName==="TEXTAREA"||a.tagName==="SELECT"||(a.tagName==="INPUT"&&a.type!=="checkbox"));}
+function render(){
+  renderNav();
+  if(editing()){dirty=true;return;}
+  dirty=false;
+  const r=route();
+  main.innerHTML=r.v==="dashboard"?vDashboard():r.v==="board"?vBoard():r.v==="modules"?vModules():r.v==="workflow"?vWorkflow():r.v==="findings"?vFindings():vDetail(r.m);
+}
+window.addEventListener("hashchange",()=>{dirty=false;document.activeElement&&document.activeElement.blur&&document.activeElement.blur();render();window.scrollTo(0,0);});
+document.addEventListener("focusout",()=>{if(dirty)setTimeout(render,50);});
+
+main.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const r=route();const act=b.dataset.act;
+  if(act==="claim"&&r.m)claim(r.m);
+  else if(act==="status"&&r.m)setStatus(r.m,b.dataset.v);
+  else if(act==="unblock"&&r.m)unblock(r.m);
+  else if(act==="copy-md")copyText(boardMarkdown(),b);
+  else if(act==="copy-git"&&r.m)copyText(gitBlock(r.m),b);
+  else if(act==="copy-pre"){const el=document.getElementById(b.dataset.t);copyText(el?el.textContent:"",b);}
+});
+main.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.id==="f-stage"){F.stage=t.value;return refreshList();}
+  if(t.id==="f-pri"){F.pri=t.value;return refreshList();}
+  if(t.id==="f-status"){F.status=t.value;return refreshList();}
+  if(t.id==="f-who"){F.who=t.value;return refreshList();}
+  if(t.id==="f-done"){F.hideDone=t.checked;return refreshList();}
+  const r=route();if(!r.m||readOnly)return;
+  if(t.dataset.key){write(r.m.id,{done:{[t.dataset.key]:t.checked}});if(!t.checked&&st(r.m)==="COMPLETED"){/* unticking a criterion on a completed module reopens review */write(r.m.id,{status:"REVIEW"},"reopened "+r.m.id+" for review");}}
+  else if(t.dataset.field){const v=t.value.trim();if(t.dataset.field==="pr"&&v&&!/^https?:\/\//.test(v))return toast("Paste a full link starting with https://");write(r.m.id,{[t.dataset.field]:v},t.dataset.field==="pr"&&v?"attached a pull request to "+r.m.id:null);}
+});
+main.addEventListener("input",e=>{if(e.target.id==="f-q"){F.q=e.target.value;refreshList();}});
+function refreshList(){const l=$("#list");if(l)l.innerHTML=listHTML();}
+$("#me").value=me.name;
+$("#me").addEventListener("change",e=>{me.name=e.target.value.trim();try{localStorage.setItem("cs24.name",me.name);}catch(x){}toast(me.name?"Name saved. New claims will be assigned to you.":"Name cleared.");});
+
+/* ============================================================
+   Connect to shared storage
+   ============================================================ */
+(async function init(){
+  render();
+  const c=window.claude;
+  if(c&&c.use){
+    try{userNs=await c.use("user");}catch(e){}
+    try{db=await c.use("db");}catch(e){}
+  }
+  if(userNs){
+    try{
+      const v=await userNs.me();
+      if(!me.name&&v&&v.name){me.name=v.name;$("#me").value=me.name;try{localStorage.setItem("cs24.name",me.name);}catch(e){}}
+      if((await userNs.can("data.write"))===false)readOnly=true;
+    }catch(e){}
+  }
+  if(!db){mode="local";lsLoad();render();return;}
+  mode="shared";
+  let timer=setTimeout(()=>{syncWarn=true;render();},10000);
+  const fresh=snap=>{if(!snap.metadata.fromCache){clearTimeout(timer);if(syncWarn){syncWarn=false;}}};
+  try{
+    db.collection("modules").onSnapshot(snap=>{
+      const next={};snap.docs.forEach(d=>{next[d.id]=d.data();known.add(d.id);});S=next;fresh(snap);render();
+    },e=>{clearTimeout(timer);syncWarn=true;if(e&&e.code==="revoked")readOnly=true;render();});
+    db.collection("activity").orderBy("t","desc").limit(25).onSnapshot(snap=>{
+      ACT=snap.docs.map(d=>d.data());render();
+    },()=>{});
+  }catch(e){mode="local";lsLoad();render();}
+  render();
+})();
+</script>
+
+</body></html>
